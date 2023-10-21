@@ -23,12 +23,17 @@ jobs:
           go install github.com/mitchellh/gox@latest
 
       - name: Build
-        run: |
-          go build -v ./...
-          echo ${{github.sha}} > version_sha.txt
+        run: go build -v ./...
 
       - name: Test
         run: go test -v ./...
+
+      - name: Get version
+        id: version
+        run: |
+          echo ${{github.sha}} > version_sha.txt
+          id=$(echo ${{github.sha}} | cut -c 1-7)
+          echo "::set-output name=id::$id"
 
       - name: Build artifacts
         run: gox -os "linux windows" -arch="amd64" -output="quickmock"
@@ -51,7 +56,7 @@ jobs:
             quickmock
             quickmock.exe
             version_sha.txt
-          tag_name: ${{github.sha}}
+          tag_name: ${{steps.version.outputs.id}}
           body: |
             ${{github.sha}}
           draft: false
