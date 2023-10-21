@@ -17,8 +17,13 @@ jobs:
         with:
           go-version: "1.21.3"
 
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          go get github.com/mitchellh/gox
+
       - name: Build
-        run: | 
+        run: |
           go build -v ./...
           echo ${{github.sha}} > version_sha.txt
 
@@ -32,12 +37,12 @@ jobs:
         with:
           name: Windows version
           path: quickmock.exe
-          
+
       - uses: actions/upload-artifact@v3
         with:
           name: Linux version
           path: quickmock
-        
+
       - name: Release
         id: release
         uses: softprops/action-gh-release@v1
@@ -53,4 +58,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-  
