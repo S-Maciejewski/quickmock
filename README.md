@@ -7,6 +7,7 @@ Read configuration from file or wireframe it interactively live.
 ## How to use
 ### Installation
 quickmock comes as a single package - just download the binary for your platform and run it.
+You can find the binaries in [the Releases section.](https://github.com/S-Maciejewski/quickmock/releases)
 
 ### Running
 #### Batch mode
@@ -25,10 +26,9 @@ quickmock
 
 
 ## To do
-- [ ] CI/CD, building for multiple platforms
-- [ ] License
 - [ ] Interactive mode (bubbletea?)
   - [ ] Exporting a manually created definition
 - [ ] JSON endpoint definition support
 - [ ] Reading config from a swagger file
 - [ ] Some basic documentation
+- [ ] Minimize the binary size (replacing gox with gccgo in the pipeline?) https://stackoverflow.com/questions/3861634/how-to-reduce-go-compiled-file-size

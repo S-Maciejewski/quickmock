@@ -33,7 +33,8 @@ jobs:
         run: |
           echo ${{github.sha}} > version_sha.txt
           id=$(echo ${{github.sha}} | cut -c 1-7)
-          echo "::set-output name=id::$id"
+          date=$(date +%Y-%m-%d)
+          echo "::set-output name=id::$date-$id"
 
       - name: Build artifacts
         run: gox -os "linux windows" -arch="amd64" -output="quickmock"
@@ -58,7 +59,9 @@ jobs:
             version_sha.txt
           tag_name: ${{steps.version.outputs.id}}
           body: |
+            Release ${{steps.version.outputs.id}}
             ${{github.sha}}
+            For Windows download quickmock.exe, for Linux download quickmock
           draft: false
           prerelease: false
         env:
