@@ -29,10 +29,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			*m.endpoints = append(*m.endpoints, definition.Endpoint{
 				Method: "GET",
 				Path:   fmt.Sprintf("/mock%d", m.count),
-				Response: struct {
-					Code    int    `yaml:"code"`
-					Content string `yaml:"content"`
-				}{
+				Response: definition.Response{
 					Code:    200,
 					Content: fmt.Sprintf("Mock response %d", m.count),
 				},
@@ -48,7 +45,7 @@ func (m model) View() string {
 }
 
 func RunTui(endpoints *[]definition.Endpoint) {
-	p := tea.NewProgram(model{})
+	p := tea.NewProgram(model{endpoints: endpoints})
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("Error running TUI: %v", err)
 		return

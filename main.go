@@ -37,7 +37,6 @@ func main() {
 	}
 
 	http.HandleFunc("/", handler)
-	log.Println("Starting quickmock server")
 	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)

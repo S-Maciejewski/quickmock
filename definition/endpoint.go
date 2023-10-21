@@ -6,13 +6,15 @@ import (
 	"os"
 )
 
+type Response struct {
+	Code    int    `yaml:"code"`
+	Content string `yaml:"content"`
+}
+
 type Endpoint struct {
-	Method   string `yaml:"method"`
-	Path     string `yaml:"path"`
-	Response struct {
-		Code    int    `yaml:"code"`
-		Content string `yaml:"content"`
-	} `yaml:"response"`
+	Method   string   `yaml:"method"`
+	Path     string   `yaml:"path"`
+	Response Response `yaml:"response"`
 }
 
 func ReadYaml(filePath string, endpoints *[]Endpoint) {
