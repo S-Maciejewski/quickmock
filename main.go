@@ -22,6 +22,7 @@ var endpoints []Endpoint
 
 func main() {
 	filePath := flag.String("f", "", "Path to YAML configuration file")
+	port := flag.Int64("p", 8080, "Port to listen on")
 	flag.Parse()
 
 	if *filePath != "" {
@@ -53,7 +54,11 @@ func main() {
 	}
 
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	if err != nil {
+		log.Fatalf("Error starting server: %v", err)
+		return
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
