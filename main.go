@@ -11,28 +11,42 @@ import (
 
 var endpoints []definition.Endpoint
 
+func getDummyEndpoints() []definition.Endpoint {
+	return []definition.Endpoint{
+		{
+			Method: "GET",
+			Path:   "/",
+			Response: definition.Response{
+				Code:    204,
+				Content: "",
+			},
+		},
+		{
+			Method: "POST",
+			Path:   "/post-test",
+			Response: definition.Response{
+				Code:    200,
+				Content: "quickmock default POST response",
+			},
+		},
+	}
+}
+
 func main() {
 	filePath := flag.String("f", "", "Path to YAML configuration file")
 	port := flag.Int64("p", 8080, "Port to listen on")
+	detachedMode := flag.Bool("d", false, "Run in detached mode (no TUI)")
 	flag.Parse()
 
 	if *filePath != "" {
 		definition.ReadYaml(*filePath, &endpoints)
 	} else {
-		endpoints = []definition.Endpoint{
-			{
-				Method: "GET",
-				Path:   "/",
-				Response: struct {
-					Code    int    `yaml:"code"`
-					Content string `yaml:"content"`
-				}{
-					Code:    204,
-					Content: "quickmock default response",
-				},
-			},
-		}
-		fmt.Println("Starting quickmock in interactive TUI mode. Press ctrl+c to exit.")
+		endpoints = getDummyEndpoints()
+	}
+	if *detachedMode {
+		log.Printf("Starting quickmock in detached mode on port %d", *port)
+	} else {
+		log.Printf("Starting quickmock in interactive TUI mode on port %d\nPress Ctrl+c to exit", *port)
 		go tui.RunTui(&endpoints)
 	}
 
