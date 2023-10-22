@@ -46,7 +46,7 @@ func main() {
 	if *detachedMode {
 		log.Printf("Starting quickmock in detached mode on port %d", *port)
 	} else {
-		log.Printf("Starting quickmock in interactive TUI mode on port %d\nPress Ctrl+c to exit", *port)
+		log.Printf("Starting quickmock in interactive TUI mode on port %d", *port)
 		go tui.RunTui(&endpoints)
 	}
 
