@@ -26,6 +26,7 @@ type model struct {
 	creating      definition.Endpoint // The endpoint being created
 	methods       [9]string           // Supported HTTP methods for selection
 	input         string              // General input buffer
+	errorMsg      string              // Error message to display in TUI
 }
 
 func (m model) Init() tea.Cmd {
@@ -51,10 +52,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = DetailView
 			case tea.KeyEsc, tea.KeyCtrlC:
 				return m, tea.Quit
+			default:
+				if msg.String() == "c" {
+					m.state = MethodSelect
+				} else if msg.String() == "d" {
+					if len(*m.endpoints) > 0 {
+						*m.endpoints = append((*m.endpoints)[:m.selectedIndex], (*m.endpoints)[m.selectedIndex+1:]...)
+						if m.selectedIndex > 0 {
+							m.selectedIndex--
+						}
+					}
+				}
 			}
-			if msg.String() == "c" {
-				m.state = MethodSelect
-			}
+
 		case MethodSelect:
 			switch msg.Type {
 			case tea.KeyDown:
@@ -76,37 +86,65 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case PathInput:
-			if msg.Type == tea.KeyEnter {
-				// TODO validate path
+			switch msg.Type {
+			case tea.KeyBackspace:
+				m.input = m.input[:len(m.input)-1]
+			case tea.KeyEsc, tea.KeyCtrlC:
+				m.state = ListView
+			case tea.KeyEnter:
+				m.errorMsg = ""
+				if definition.ValidatePath(m.input) {
+					m.errorMsg = "Invalid path. It has to start with / and be a valid URL path"
+					m.input = ""
+					break
+				}
 				m.creating.Path = m.input
 				m.input = ""
 				m.state = CodeInput
-			} else {
+			default:
 				m.input += msg.String()
 			}
 
 		case CodeInput:
-			if msg.Type == tea.KeyEnter {
+			switch msg.Type {
+			case tea.KeyEnter:
 				m.creating.Response.Code = definition.ParseStatusCode(m.input)
 				m.input = ""
 				m.state = ResponseInput
-			} else {
+			case tea.KeyBackspace:
+				m.input = m.input[:len(m.input)-1]
+			case tea.KeyEsc, tea.KeyCtrlC:
+				m.state = ListView
+			default:
 				m.input += msg.String()
 			}
 
 		case ResponseInput:
-			if msg.String() == "`" { // Using the backtick '`' to confirm multi-line input.
-				m.creating.Response.Content = m.input
-				*m.endpoints = append(*m.endpoints, m.creating)
-
-				// Reset state
-				m.creating = definition.Endpoint{}
-				m.input = ""
+			switch msg.Type {
+			case tea.KeyEsc, tea.KeyCtrlC:
 				m.state = ListView
-			} else {
-				// TODO: Fix the bug with enter being 'enter' and backspace being 'backspace' etc.
-				// Append key to input buffer
-				m.input += msg.String()
+			case tea.KeyBackspace:
+				m.input = m.input[:len(m.input)-1]
+			case tea.KeyEnter:
+				m.input += "\n"
+			case tea.KeyTab:
+				m.input += "\t"
+			case tea.KeyUp, tea.KeyDown, tea.KeyLeft, tea.KeyRight:
+				// Ignore these keys
+				break
+			default:
+				if msg.String() == "`" { // Using the backtick '`' to confirm multi-line input.
+					m.creating.Response.Content = m.input
+					*m.endpoints = append(*m.endpoints, m.creating)
+
+					// Reset state
+					m.creating = definition.Endpoint{}
+					m.input = ""
+					m.state = ListView
+				} else {
+					m.input += msg.String()
+				}
+
 			}
 
 		case DetailView:
@@ -126,6 +164,7 @@ func (m model) View() string {
 	case ListView:
 		view := "Controls:\n" +
 			"  c: Create new endpoint\n" +
+			"  d: Delete endpoint\n" +
 			"  ↑/↓: Navigate endpoints\n" +
 			"  enter: View endpoint\n" +
 			"  esc: Exit\n\n"
@@ -139,16 +178,21 @@ func (m model) View() string {
 		return view
 
 	case DetailView:
-		return fmt.Sprintf("Endpoint view, press esc to exit\n"+
+		view := fmt.Sprintf("Endpoint view\n"+
+			"  esc: Back to list\n\n"+
 			"Method: %s\nPath: %s\nCode: %d\nContent: %s\n",
 			m.detailedView.Method,
 			m.detailedView.Path,
 			m.detailedView.Response.Code,
 			m.detailedView.Response.Content,
 		)
+		return view
 
 	case MethodSelect:
-		view := "Select a method:\n"
+		view := "Select a method:\n" +
+			"  ↑/↓: Navigate methods\n" +
+			"  enter: Select method\n" +
+			"  esc: Cancel\n\n"
 		for i, method := range m.methods {
 			prefix := "  "
 			if i == m.selectedIndex {
@@ -159,7 +203,9 @@ func (m model) View() string {
 		return view
 
 	case PathInput:
-		return fmt.Sprintf("Enter path: %s", m.input)
+		view := fmt.Sprintf("Enter path:\n%s", m.input)
+		view += fmt.Sprintf("\n%s", m.errorMsg)
+		return view
 
 	case CodeInput:
 		return fmt.Sprintf("Enter HTTP response status code: %s", m.input)

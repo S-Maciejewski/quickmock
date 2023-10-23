@@ -63,3 +63,11 @@ func ParseStatusCode(code string) int {
 	}
 	return 200
 }
+
+// ValidatePath is a simple URL path validator.
+func ValidatePath(path string) bool {
+	if len(path) > 0 && path[0] != '/' {
+		return true
+	}
+	return false
+}
