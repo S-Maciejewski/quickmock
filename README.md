@@ -50,7 +50,7 @@ _Note: you can still use -f with interactive mode to pre-load some endpoint defi
 - [ ] Interactive mode CRUD
     - [ ] Exporting a manually created definition
 - [ ] JSON endpoint definition support
-- [ ] Reading config from a swagger file / export to swagger
+- [ ] Reading config from an OpenAPI spec file / export to OpenAPI (Swagger)
 - [ ] Some basic documentation
 - [ ] Minimize the binary size (replacing gox with gccgo in the
   pipeline?) https://stackoverflow.com/questions/3861634/how-to-reduce-go-compiled-file-size

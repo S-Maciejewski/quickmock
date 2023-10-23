@@ -11,7 +11,9 @@ import (
 
 var endpoints []definition.Endpoint
 
-func getDummyEndpoints() []definition.Endpoint {
+// defaultEndpoints returns a slice of default endpoints to be used if no YAML file is provided.
+// It's here to make it easier for user to understand how the TUI works.
+func defaultEndpoints() []definition.Endpoint {
 	return []definition.Endpoint{
 		{
 			Method: "GET",
@@ -19,14 +21,6 @@ func getDummyEndpoints() []definition.Endpoint {
 			Response: definition.Response{
 				Code:    204,
 				Content: "",
-			},
-		},
-		{
-			Method: "POST",
-			Path:   "/post-test",
-			Response: definition.Response{
-				Code:    200,
-				Content: "quickmock default POST response",
 			},
 		},
 	}
@@ -41,7 +35,7 @@ func main() {
 	if *filePath != "" {
 		definition.ReadYaml(*filePath, &endpoints)
 	} else {
-		endpoints = getDummyEndpoints()
+		endpoints = defaultEndpoints()
 	}
 	if *detachedMode {
 		log.Printf("Starting quickmock in detached mode on port %d", *port)
@@ -58,6 +52,7 @@ func main() {
 	}
 }
 
+// handler handles all HTTP requests to the server. It mocks the routing and endpoints defined in the file or by TUI.
 func handler(w http.ResponseWriter, r *http.Request) {
 	for _, endpoint := range endpoints {
 		if r.URL.Path == endpoint.Path && r.Method == endpoint.Method {
