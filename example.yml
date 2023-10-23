@@ -1,0 +1,20 @@
+- method: GET
+  path: /hello
+  response:
+    code: 200
+    content: |
+      {
+        "message": "Hello, world!"
+      }
+- method: POST
+  path: /foo
+  response:
+    code: 201
+    content: |
+      {
+        "message": "posted bar"
+      }
+- method: DELETE
+  path: /bar
+  response:
+    code: 410

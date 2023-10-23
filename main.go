@@ -3,54 +3,51 @@ package main
 import (
 	"flag"
 	"fmt"
-	yaml "gopkg.in/yaml.v2"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"quickmock/definition"
+	"quickmock/tui"
 )
 
-type Endpoint struct {
-	Method   string `yaml:"method"`
-	Path     string `yaml:"path"`
-	Response struct {
-		Code    int    `yaml:"code"`
-		Content string `yaml:"content"`
-	} `yaml:"response"`
-}
+var endpoints []definition.Endpoint
 
-var endpoints []Endpoint
+func getDummyEndpoints() []definition.Endpoint {
+	return []definition.Endpoint{
+		{
+			Method: "GET",
+			Path:   "/",
+			Response: definition.Response{
+				Code:    204,
+				Content: "",
+			},
+		},
+		{
+			Method: "POST",
+			Path:   "/post-test",
+			Response: definition.Response{
+				Code:    200,
+				Content: "quickmock default POST response",
+			},
+		},
+	}
+}
 
 func main() {
 	filePath := flag.String("f", "", "Path to YAML configuration file")
 	port := flag.Int64("p", 8080, "Port to listen on")
+	detachedMode := flag.Bool("d", false, "Run in detached mode (no TUI)")
 	flag.Parse()
 
 	if *filePath != "" {
-		content, err := ioutil.ReadFile(*filePath)
-		if err != nil {
-			log.Fatalf("Error reading YAML file: %v", err)
-		}
-
-		err = yaml.Unmarshal(content, &endpoints)
-		if err != nil {
-			log.Fatalf("Error unmarshalling YAML content: %v", err)
-		}
+		definition.ReadYaml(*filePath, &endpoints)
 	} else {
-		// TODO: Start interactive mode here
-		fmt.Println("Starting in interactive mode...")
-		endpoints = []Endpoint{
-			{
-				Method: "GET",
-				Path:   "/",
-				Response: struct {
-					Code    int    `yaml:"code"`
-					Content string `yaml:"content"`
-				}{
-					Code:    204,
-					Content: "quickmock default response",
-				},
-			},
-		}
+		endpoints = getDummyEndpoints()
+	}
+	if *detachedMode {
+		log.Printf("Starting quickmock in detached mode on port %d", *port)
+	} else {
+		log.Printf("Starting quickmock in interactive TUI mode on port %d", *port)
+		go tui.RunTui(&endpoints)
 	}
 
 	http.HandleFunc("/", handler)
@@ -71,5 +68,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(404)
-	w.Write([]byte("Not Found"))
+	_, _ = w.Write([]byte("Not Found"))
 }

@@ -1,8 +1,0 @@
-- method: GET
-  path: /test
-  response:
-    code: 200
-    content: |
-      {
-        "message": "Hello, world!"
-      }
