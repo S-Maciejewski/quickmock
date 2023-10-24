@@ -33,7 +33,7 @@ func main() {
 	flag.Parse()
 
 	if *filePath != "" {
-		definition.ReadYaml(*filePath, &endpoints)
+		definition.LoadEndpointsFromFile(*filePath, &endpoints)
 	} else {
 		endpoints = defaultEndpoints()
 	}
